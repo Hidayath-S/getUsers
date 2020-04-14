@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,25 +45,36 @@ public class UsersController {
 	}
 
 	@PostMapping(path = "user", consumes = { "application/json" })
-	public User createUser(@RequestBody User user) {
-		/*
-		 * ErrorMessages er= new ErrorMessages(); Iterable<User>
-		 * userList=repo.findAll(); for (User user2 : userList) { int
-		 * id=user2.getUserId(); boolean status = repo.existsById(id); if (status ==
-		 * true) { er.setCode(HttpStatus.BAD_REQUEST.value());
-		 * er.setMessage("user found with userId=" + id); return er; }
-		 * 
-		 * }
-		 */
-		
-		
+	public Object createUser(@RequestBody User user) {
+		ErrorMessages er= new ErrorMessages();
+		System.out.println(user.getEmail());
+		boolean status=repo.existsByEmail(user.getEmail());
+		if(status==true) {
+			er.setCode(HttpStatus.BAD_REQUEST.value());
+			er.setMessage("user found with email=" + user.getEmail());
+			return er;		  
+			  
+			
+		}
 		int userCount = (int) repo.count();
 		user.setUserId(userCount + 1);
 
 		repo.save(user);
 		return user;
-
 	}
+		
+		
+		
+		
+		   
+		 
+		  
+		 
+		
+		
+		
+
+	
 
 	@DeleteMapping(path = "user/{userId}", produces = { "application/json" })
 	public ErrorMessages deleteUser(@PathVariable int userId) {
