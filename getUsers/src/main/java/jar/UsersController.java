@@ -16,18 +16,46 @@ import org.springframework.web.bind.annotation.RestController;
 public class UsersController {
 	@Autowired
 	UserRepository repo;
+	
+	
 
-	@GetMapping("users")
+	@GetMapping(path="users")
 	public List<User> getUsers() {
 
 		List<User> users = (List<User>) repo.findAll();
 		return users;
 
 	}
+	@GetMapping(path = "user/{userId}", produces = { "application/json" })
+	public Object getUserById(@PathVariable int userId) {
+		ErrorMessages er= new ErrorMessages();
+		boolean status = repo.existsById(userId);
+		if (status == false) {
+			er.setCode(HttpStatus.BAD_REQUEST.value());
+			er.setMessage("No user found with userId=" + userId);
+			return er;
+		}
+		
+		Optional<User> users =  repo.findById(userId);
+		return users;
+		
+		
+
+	}
 
 	@PostMapping(path = "user", consumes = { "application/json" })
 	public User createUser(@RequestBody User user) {
-
+		/*
+		 * ErrorMessages er= new ErrorMessages(); Iterable<User>
+		 * userList=repo.findAll(); for (User user2 : userList) { int
+		 * id=user2.getUserId(); boolean status = repo.existsById(id); if (status ==
+		 * true) { er.setCode(HttpStatus.BAD_REQUEST.value());
+		 * er.setMessage("user found with userId=" + id); return er; }
+		 * 
+		 * }
+		 */
+		
+		
 		int userCount = (int) repo.count();
 		user.setUserId(userCount + 1);
 
@@ -39,7 +67,7 @@ public class UsersController {
 	@DeleteMapping(path = "user/{userId}", produces = { "application/json" })
 	public ErrorMessages deleteUser(@PathVariable int userId) {
 		// Integer u=(repo.findById(userId);
-		ErrorMessages er = new ErrorMessages();
+		ErrorMessages er= new ErrorMessages();
 		boolean status = repo.existsById(userId);
 		if (status == false) {
 			er.setCode(HttpStatus.BAD_REQUEST.value());
