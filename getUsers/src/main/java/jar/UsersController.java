@@ -1,17 +1,24 @@
 package jar;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.JsonObject;
 
 @RestController
 public class UsersController {
@@ -28,17 +35,28 @@ public class UsersController {
 
 	}
 	@GetMapping(path = "user/{userId}", produces = { "application/json" })
+	
 	public Object getUserById(@PathVariable int userId) {
 		ErrorMessages er= new ErrorMessages();
 		boolean status = repo.existsById(userId);
 		if (status == false) {
-			er.setCode(HttpStatus.BAD_REQUEST.value());
+			er.setCode(HttpStatus.BAD_REQUEST.toString());
 			er.setMessage("No user found with userId=" + userId);
-			return er;
+			
+			JsonObject error= new JsonObject();
+			error.addProperty("FaultCode", er.getCode());
+			error.addProperty("FaultMessage", er.getMessage());
+			
+			JsonObject Fault= new JsonObject();
+			Fault.add("FaultList", error);
+			
+			
+			return Fault;
+			
 		}
 		
 		Optional<User> users =  repo.findById(userId);
-		return users;
+		return Arrays.asList(users);
 		
 		
 
@@ -47,12 +65,15 @@ public class UsersController {
 	@PostMapping(path = "user", consumes = { "application/json" })
 	public Object createUser(@RequestBody User user) {
 		ErrorMessages er= new ErrorMessages();
-		System.out.println(user.getEmail());
+		
 		boolean status=repo.existsByEmail(user.getEmail());
 		if(status==true) {
-			er.setCode(HttpStatus.BAD_REQUEST.value());
+			//er.setCode((HttpStatus.BAD_REQUEST.value()));			
 			er.setMessage("user found with email=" + user.getEmail());
-			return er;		  
+			
+			return  er;	
+			
+			
 			  
 			
 		}
@@ -82,11 +103,11 @@ public class UsersController {
 		ErrorMessages er= new ErrorMessages();
 		boolean status = repo.existsById(userId);
 		if (status == false) {
-			er.setCode(HttpStatus.BAD_REQUEST.value());
+			//er.setCode(HttpStatus.BAD_REQUEST.value());
 			er.setMessage("No user found with userId=" + userId);
 			return er;
 		}
-		er.setCode(HttpStatus.OK.value());
+		//er.setCode(HttpStatus.OK.value());
 		er.setMessage("User deleted succefully!");
 		repo.deleteById(userId);
 
